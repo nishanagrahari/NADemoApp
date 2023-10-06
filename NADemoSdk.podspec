@@ -19,6 +19,8 @@ Pod::Spec.new do |spec|
   spec.name         = "NADemoSdk"
   spec.version      = "0.0.2"
   spec.summary      = "A CocoaPods library written in Swift"
+  
+    spec.dependency 'Alamofire'
 
   # This description is used to generate tags and improve search results.
   #   * Think: What does it do? Why did you write it? What is the focus?
