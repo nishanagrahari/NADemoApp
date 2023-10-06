@@ -16,6 +16,6 @@ This CocoaPods library helps you perform calculation.
   spec.swift_version = "4.2"
 
   spec.source        = { :git => "https://github.com/nishanagrahari/NADemoApp.git", :tag => "#{spec.version}" }
-  spec.source_files  = "NADemoAppSdk/**/*.{h,m,swift}"
+  spec.source_files  = "NADemoSdk/**/*.{h,m,swift}"
 
 end
