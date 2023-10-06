@@ -9,10 +9,10 @@ import XCTest
 @testable import NADemoSdk
 
 final class NADemoSdkTests: XCTestCase {
-    var naDemoSdk: NSDemoSdk!
+    var naDemoSdk: NADemoSdk!
 
       override func setUp() {
-          naDemoSdk = NSDemoSdk()
+          naDemoSdk = NADemoSdk()
       }
 
       func testAdd() {

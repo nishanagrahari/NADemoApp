@@ -7,9 +7,9 @@
 
 import Foundation
 import Foundation
-public final class NSDemoSdk {
+public final class NADemoSdk {
 
-    let name = "NSDemoSdk"
+    let name = "NADemoSdk"
     
     public func add(a: Int, b: Int) -> Int {
         return a + b
