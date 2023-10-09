@@ -25,4 +25,26 @@ public final class NADemoSdk {
         
     }
     
+    
+    //MARK: Login
+    func requestOTP(onSuccess:@escaping FLServiceSuccessBlock, onFailure:@escaping FLServiceFailureBlock) {
+        FEServiceInteractor.shared.request(forAPI: .login("")) { dataResponse, error in
+            
+            if let response = dataResponse {
+                print(response)
+            }
+//            guard error?.failureReason !=  "Response could not be decoded because of error:\nThe data couldn’t be read because it isn’t in the correct format." else {
+//                onFailure("FLTranslations.shared.somethingWrongTry")
+//                return
+//            }
+//            guard let loginResponse = response,
+//                  let attempts = loginResponse.attempts, attempts > 0
+            else {
+                onFailure(error);
+                return
+            }
+            onSuccess()
+        }
+    }
+    
 }

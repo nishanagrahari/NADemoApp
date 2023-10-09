@@ -40,35 +40,57 @@ class FEServiceInteractor {
     var baseURLWithVersion: URL { APIRouter.baseURLWithVersion }
     
     
-    func request<T: Decodable>(forAPI router: APIRouter, withResponseFormat format: T.Type, andCompletionHandler completion: @escaping FLServiceTaskCompletionHandler<T>, enableCache: Bool = true) {
-        if let httpbody = router.urlRequest?.httpBody {
-          //  let prettyPrinted = httpbody.prettyPrintedJSONString
-          //  print(prettyPrinted)
-        }
+    func request(forAPI router: APIRouter, andCompletionHandler completion: @escaping FLServiceTaskCompletionHandler, enableCache: Bool = true) {
+        AF.request(router).responseData { response in
+            switch response.result {
+                case .success(let data):
+                    do {
+                        let asJSON = try JSONSerialization.jsonObject(with: data)
+                        completion(asJSON, nil)
+                        // Handle as previously success
+                    } catch {
+                        completion(nil, error.localizedDescription)
+                        // Here, I like to keep a track of error if it occurs, and also print the response data if possible into String with UTF8 encoding
+                        // I can't imagine the number of questions on SO where the error is because the API response simply not being a JSON and we end up asking for that "print", so be sure of it
+                        print("Error while decoding response: \(error) from: \(String(data: data, encoding: .utf8) ?? "")")
+                        break
+                    }
+                case .failure(let error):
+                print("Error while decoding response: \(error)")
+                completion(nil, error.localizedDescription)
 
-        AF.request(router).responseDecodable(of: T.self, decoder: JSONDecoder.flJSONDecoder) { [weak self] (response: DataResponse<T, AFError>) in
-            self?.handleResponse(response: response, forAPI: router, andCompletionHandler: completion)
-        }
-    }
-    
-    
-    private func handleResponse<T: Decodable>(response : DataResponse<T, AFError>, forAPI router: APIRouter, andCompletionHandler completion: @escaping FLServiceTaskCompletionHandler<T>) {
-        let responseCode = response.response?.statusCode
-        if responseCode == 401, let responseData = response.data  {
-                print("401 error found")
-                let parsedData = try? JSONSerialization.jsonObject(with: responseData, options: .mutableContainers) as? [String : Any]
-                if let message = parsedData?["message"] as? String {
-                    print("401 error with message \(message)")
-                    completion(response.value, response.error)
-                } else {
-                    print("401 error witout message empty")
-                    
-                    return
+                    break
+                    // Handle as previously error
                 }
-          
         }
-        completion(response.value, response.error)
+        
+        
+        
+        //responseJSON(completionHandler: completion)
+        
+//        AF.request(router).responseDecodable(of: T.self, decoder: JSONDecoder.flJSONDecoder) { [weak self] (response: DataResponse<T, AFError>) in
+//            self?.handleResponse(response: response, forAPI: router, andCompletionHandler: completion)
+//        }
     }
+    
+    
+//    private func handleResponse<T: Decodable>(response : DataResponse<T, AFError>, forAPI router: APIRouter, andCompletionHandler completion: @escaping FLServiceTaskCompletionHandler<T>) {
+//        let responseCode = response.response?.statusCode
+//        if responseCode == 401, let responseData = response.data  {
+//                print("401 error found")
+//                let parsedData = try? JSONSerialization.jsonObject(with: responseData, options: .mutableContainers) as? [String : Any]
+//                if let message = parsedData?["message"] as? String {
+//                    print("401 error with message \(message)")
+//                    completion(response.value, response.error)
+//                } else {
+//                    print("401 error witout message empty")
+//
+//                    return
+//                }
+//
+//        }
+//        completion(response.value, response.error)
+//    }
     
     func requestString<T: Decodable>(forAPI router: APIRouter, withResponseFormat format: T.Type, andCompletionHandler completion: @escaping ((String?) -> ()), enableCache: Bool = true) {
         AF.request(router).responseString { (responseString) in
@@ -113,7 +135,7 @@ enum RequestParams {
     case none
 }
 
-typealias FLServiceTaskCompletionHandler<T: Decodable> = (T?, AFError?) -> Void
+typealias FLServiceTaskCompletionHandler = (Any?, String?) -> Void
 typealias FLServiceSuccessBlock = ()->()
 typealias FLServiceFailureBlock = (_ errorMessage: String?)->()
 typealias FLServiceNetworkIssueBlock = ()->()
