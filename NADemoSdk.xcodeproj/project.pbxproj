@@ -22,6 +22,7 @@
 		B24BE1C22ACE979700F880D1 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B24BE1C02ACE979700F880D1 /* LaunchScreen.storyboard */; };
 		B24BE1C82ACE9A1400F880D1 /* Calculation.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24BE1C72ACE9A1400F880D1 /* Calculation.swift */; };
 		B24BE1CA2ACEB3D300F880D1 /* NADemoSdk.swift in Sources */ = {isa = PBXBuildFile; fileRef = B24BE1C92ACEB3D300F880D1 /* NADemoSdk.swift */; };
+		B2BEE8022AD55BF300B133F2 /* FEUserSession.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2BEE8012AD55BF300B133F2 /* FEUserSession.swift */; };
 		B2EBF9852AD0253F00EC6242 /* FEServiceInteractor.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2EBF9842AD0253F00EC6242 /* FEServiceInteractor.swift */; };
 		B2EBF9872AD0255100EC6242 /* FEAPIRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2EBF9862AD0255100EC6242 /* FEAPIRouter.swift */; };
 /* End PBXBuildFile section */
@@ -56,6 +57,7 @@
 		B24BE1C32ACE979700F880D1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		B24BE1C72ACE9A1400F880D1 /* Calculation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Calculation.swift; sourceTree = "<group>"; };
 		B24BE1C92ACEB3D300F880D1 /* NADemoSdk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NADemoSdk.swift; sourceTree = "<group>"; };
+		B2BEE8012AD55BF300B133F2 /* FEUserSession.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FEUserSession.swift; sourceTree = "<group>"; };
 		B2EBF9842AD0253F00EC6242 /* FEServiceInteractor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FEServiceInteractor.swift; sourceTree = "<group>"; };
 		B2EBF9862AD0255100EC6242 /* FEAPIRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FEAPIRouter.swift; sourceTree = "<group>"; };
 		BA369F3EFAAA8DEC64FD886D /* Pods-NADemoSdk.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-NADemoSdk.release.xcconfig"; path = "Target Support Files/Pods-NADemoSdk/Pods-NADemoSdk.release.xcconfig"; sourceTree = "<group>"; };
@@ -132,6 +134,7 @@
 		B24BE1972ACE967300F880D1 /* NADemoSdk */ = {
 			isa = PBXGroup;
 			children = (
+				B2BEE8002AD55BF300B133F2 /* Auth */,
 				B24BE1982ACE967300F880D1 /* NADemoSdk.h */,
 				B24BE1992ACE967300F880D1 /* NADemoSdk.docc */,
 				B24BE1C72ACE9A1400F880D1 /* Calculation.swift */,
@@ -162,6 +165,14 @@
 				B24BE1C32ACE979700F880D1 /* Info.plist */,
 			);
 			path = NSDemoExamples;
+			sourceTree = "<group>";
+		};
+		B2BEE8002AD55BF300B133F2 /* Auth */ = {
+			isa = PBXGroup;
+			children = (
+				B2BEE8012AD55BF300B133F2 /* FEUserSession.swift */,
+			);
+			path = Auth;
 			sourceTree = "<group>";
 		};
 		E18F0CD2E7C85CD389D2988A /* Frameworks */ = {
@@ -408,6 +419,7 @@
 				B24BE19A2ACE967300F880D1 /* NADemoSdk.docc in Sources */,
 				B2EBF9872AD0255100EC6242 /* FEAPIRouter.swift in Sources */,
 				B2EBF9852AD0253F00EC6242 /* FEServiceInteractor.swift in Sources */,
+				B2BEE8022AD55BF300B133F2 /* FEUserSession.swift in Sources */,
 				B24BE1C82ACE9A1400F880D1 /* Calculation.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
