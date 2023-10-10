@@ -7,38 +7,25 @@
 
 import Foundation
 public final class NADemoSdk {
-
+    
     //MARK: Initialisation
-    static let shared = NADemoSdk()
+     private var interactor: FLServiceInteractorProtocol
     
-    let name = "NADemoSdk"
-    
-    public func add(a: Int, b: Int) -> Int {
-        return a + b
+     init(interactor: FLServiceInteractorProtocol){
+        self.interactor = interactor
     }
     
-    public func sub(a: Int, b: Int) -> Int {
-        return a - b
-    }
-    
-    func getData() {
-        
-    }
+   public static let shared = NADemoSdk(interactor: FEServiceInteractor())
+
     
     
     //MARK: Login
-    func requestOTP(onSuccess:@escaping FLServiceSuccessBlock, onFailure:@escaping FLServiceFailureBlock) {
-        FEServiceInteractor.shared.request(forAPI: .login("")) { dataResponse, error in
+    public func requestOTP(onSuccess:@escaping FLServiceSuccessBlock, onFailure:@escaping FLServiceFailureBlock) {
+        interactor.request(forAPI: .login("")) { dataResponse, error in
             
             if let response = dataResponse {
                 print(response)
             }
-//            guard error?.failureReason !=  "Response could not be decoded because of error:\nThe data couldn’t be read because it isn’t in the correct format." else {
-//                onFailure("FLTranslations.shared.somethingWrongTry")
-//                return
-//            }
-//            guard let loginResponse = response,
-//                  let attempts = loginResponse.attempts, attempts > 0
             else {
                 onFailure(error);
                 return
@@ -47,4 +34,14 @@ public final class NADemoSdk {
         }
     }
     
+    public func configureSDK(apiKey: String) {
+            interactor.request(forAPI: .login("")) { dataResponse, error in
+                if let response = dataResponse {
+                    print(response)
+                }
+                else {
+                    return
+                }
+            }
+    }
 }

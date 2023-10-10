@@ -9,14 +9,17 @@ import XCTest
 @testable import NADemoSdk
 
 final class NADemoSdkTests: XCTestCase {
-    var naDemoSdk: NADemoSdk!
+    //var naDemoSdk: NADemoSdk!
 
       override func setUp() {
-          naDemoSdk = NADemoSdk()
       }
 
-      func testAdd() {
-          XCTAssertEqual(naDemoSdk.add(a: 1, b: 1), 2)
-      }
+//      func testAdd() {
+//          XCTAssertEqual(naDemoSdk.add(a: 1, b: 1), 2)
+//      }
+    
+    func testNew() {
+        NADemoSdk.shared.configureSDK(apiKey: "")
+    }
 
 }

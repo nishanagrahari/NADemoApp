@@ -7,7 +7,7 @@
 
 import Foundation
 import Alamofire
-enum APIRouter: APIConfiguration {
+public enum APIRouter: APIConfiguration {
     
     //Login
 //    case getOTP(_ request: FLLoginGetOTPRequest)
@@ -15,11 +15,12 @@ enum APIRouter: APIConfiguration {
 //    case verifyOTP(_ request: FLEmailAuthRequest)
     
     case login(_ request: String)
-   
-    
+    case authLogin(_ apiKey: String)
+  //  case refreshAuth(_ authToken: String)
+    case refreshToken(_ request: FERefreshTokenRequest)
     //MARK: Base URL
     static var baseURLWithVersion: URL {
-        let baseUrl = URL(string: "")!
+        let baseUrl = URL(string: "https://engage.frolicz0.de/service/application/app")!
         return baseUrl.appendingPathComponent(version)
     }
     
@@ -27,9 +28,8 @@ enum APIRouter: APIConfiguration {
     // MARK: - HTTPMethod
     var method: HTTPMethod {
         switch self {
-        case .login:
+        case .login, .refreshToken, .authLogin:
             return .post
-       
         }
     }
     
@@ -37,9 +37,12 @@ enum APIRouter: APIConfiguration {
     // MARK: - Parameters
     var parameters: RequestParams {
         switch self {
-            // force update
         case .login:
             return .none
+        case .refreshToken(let request):
+            return .header(request)
+        case .authLogin(let request):
+            return .header(request)
             
         }
     }
@@ -48,7 +51,9 @@ enum APIRouter: APIConfiguration {
     var path: String {
         switch self {
             // force update
-        case .login:
+        case .refreshToken:
+            return ""
+        case .login, .authLogin:
             return "FLAppConfig.shared.forceUpdate"
             //Login
        
@@ -60,16 +65,16 @@ enum APIRouter: APIConfiguration {
     static var version2: String { return "v2/" }
 
     // MARK: - URLRequestConvertible
-    func asURLRequest() throws -> URLRequest {
+    public func asURLRequest() throws -> URLRequest {
         var url = APIRouter.baseURLWithVersion
         var urlRequest = URLRequest(url: url.appendingPathComponent(path))
         switch self {
-        case .login:
+        case .login, .authLogin, .refreshToken:
             url = APIRouter.baseURLWithVersion
             urlRequest = URLRequest(url: url.appendingPathComponent(path))
-
-       // default:
-          //  urlRequest.setValue(FLServiceInteractor.shared.userAgent, forHTTPHeaderField: HTTPHeaderField.userAgent.rawValue)
+            
+            // default:
+            //  urlRequest.setValue(FLServiceInteractor.shared.userAgent, forHTTPHeaderField: HTTPHeaderField.userAgent.rawValue)
         }
         
         urlRequest.url = url.appendingPathComponent(path)
@@ -80,70 +85,24 @@ enum APIRouter: APIConfiguration {
         //Common Headers
         urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.acceptType.rawValue)
         urlRequest.setValue(ContentType.json.rawValue, forHTTPHeaderField: HTTPHeaderField.contentType.rawValue)
-        urlRequest.setValue("true", forHTTPHeaderField: "x-ddebbugg")
         
-        var reqData: [String: Any]?
         
         // Parameters
         switch parameters {
-//            case .requestBody(let request, let encodingType):
-//            let params = try request.convertToDictionary(encoder: encodingType)
-//            urlRequest.httpBody = try JSONSerialization.data(withJSONObject: params, options: [])
-//            reqData = params
+            //            case .requestBody(let request, let encodingType):
+            //            let params = try request.convertToDictionary(encoder: encodingType)
+            //            urlRequest.httpBody = try JSONSerialization.data(withJSONObject: params, options: [])
+            //            reqData = params
         case .requestBodyWithDictionary(let dictionary):
-            let params = dictionary
-            urlRequest.httpBody = try JSONSerialization.data(withJSONObject: params, options: [])
-            reqData = params
-     //   case .urlQuery(let request, let encodingType):
-//            let params = try request.convertToDictionary(encoder: encodingType)
-//            let queryParams = params.map { pair  in
-//                return URLQueryItem(name: pair.key, value: "\(pair.value)")
-//            }.sorted(by: {($0 as URLQueryItem).name < ($1 as URLQueryItem).name})
-//            var components = URLComponents(string:url.appendingPathComponent(path).absoluteString)
-//            components?.queryItems = queryParams
-//            urlRequest.url = components?.url
+            urlRequest.httpBody = try JSONSerialization.data(withJSONObject: dictionary, options: [])
+        case .header(let request):
+            let params = try request.convertToDictionary()
+            params.forEach({
+                urlRequest.setValue($0.value as? String, forHTTPHeaderField: $0.key)
+            })
         case .none:
             break
-//        case .bodyAndUrlParams(let bodyReq, let urlReq, let encodingType):
-//                    let paramsBody = try bodyReq.convertToDictionary(encoder: encodingType)
-//                    urlRequest.httpBody = try JSONSerialization.data(withJSONObject: paramsBody, options: [])
-//                    reqData = paramsBody
-//                    let paramsQuery = try urlReq.convertToDictionary(encoder: encodingType)
-//                    let queryParams = paramsQuery.map { pair in
-//                        return URLQueryItem(name: pair.key, value: "\(pair.value)")
-//                    }.sorted(by: {($0 as URLQueryItem).name < ($1 as URLQueryItem).name})
-//
-//                    var components = URLComponents(string:url.appendingPathComponent(path).absoluteString)
-//                    components?.queryItems = queryParams
-//                    urlRequest.url = components?.url
-//        case .header(let request):
-//            let params = try request.dictionaryWithoutSnakeCase()
-//            params.forEach({
-//                urlRequest.setValue($0.value as? String, forHTTPHeaderField: $0.key)
-//            })
-//        case .urlReplace(let replacements):
-//            var paramPath = path
-//            paramPath.replaceURLParameters(withParameters: replacements)
-//            urlRequest.url = url.appendingPathComponent(paramPath)
-//        case .urlReplaceAndParams(let replacements, let queryParams, let encodingType):
-//            var replacedPath = path
-//            replacedPath.replaceURLParameters(withParameters: replacements)
-//            let paramsQuery = try queryParams.convertToDictionary(encoder: encodingType)
-//            let queryParams = paramsQuery.map { pair in
-//                return URLQueryItem(name: pair.key, value: "\(pair.value)")
-//            }.sorted(by: {($0 as URLQueryItem).name < ($1 as URLQueryItem).name})
-//            var components = URLComponents(string:url.appendingPathComponent(replacedPath).absoluteString)
-//            components?.queryItems = queryParams
-//            urlRequest.url = components?.url
-//        case .urlReplaceAndBody(replace: let replacements, body: let body, let encodingType):
-//            var paramPath = path
-//            paramPath.replaceURLParameters(withParameters: replacements)
-//            urlRequest.url = url.appendingPathComponent(paramPath)
-//            let requestBody = try body.convertToDictionary(encoder: encodingType)
-//            urlRequest.httpBody = try JSONSerialization.data(withJSONObject: requestBody, options: [])
-//            reqData = requestBody
         }
         return urlRequest
-       
     }
 }
