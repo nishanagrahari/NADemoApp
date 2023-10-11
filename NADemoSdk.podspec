@@ -17,7 +17,7 @@ Pod::Spec.new do |spec|
   #
 
   spec.name         = "NADemoSdk"
-  spec.version      = "0.0.5"
+  spec.version      = "0.0.6"
   spec.summary      = "A CocoaPods library written in Swift"
   spec.dependency 'Alamofire'
 

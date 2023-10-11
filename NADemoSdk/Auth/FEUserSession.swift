@@ -12,16 +12,16 @@ public struct FEUserSession: Codable {
     let accessToken: String?
     let refreshToken: String?
     
-    func saveLoginSession() {
-        if let encodedSession = try? JSONEncoder().encode(self) {
+    static func saveLoginSession(session: Any) {
+        if let encodedSession = try? JSONSerialization.data(withJSONObject: session) {
             let userDefaults = UserDefaults.standard
-            userDefaults.set(encodedSession, forKey: "UserSession")
+            userDefaults.set(encodedSession, forKey: "FEUserSession")
         }
     }
 
     static func getSession() -> FEUserSession? {
         let userDefaults = UserDefaults.standard
-        guard let savedSessionData = userDefaults.object(forKey: "UserSession") as? Data,
+        guard let savedSessionData = userDefaults.object(forKey: "FEUserSession") as? Data,
               let savedSession = try? JSONDecoder().decode(FEUserSession.self, from: savedSessionData) else { return nil }
         return savedSession
     }
@@ -42,7 +42,10 @@ public struct FERefreshTokenRequest: Codable {
         case cookie = "Cookie"
     }
 }
-//
-//struct FERefreshTokenResponse: Codable {
-//    let message: String?
-//}
+
+
+public struct FEAuthLoginRequest: Codable {
+    let apiKey: String
+    var userIdentifier: String = ""
+}
+

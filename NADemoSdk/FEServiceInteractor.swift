@@ -28,19 +28,22 @@ class FEServiceInteractor: FLServiceInteractorProtocol {
     
     func request(forAPI router: APIRouter, andCompletionHandler completion: @escaping FLServiceTaskCompletionHandler) {
         AF.request(router).responseData { response in
-            if response.response?.statusCode == 404 {
+            if response.response?.statusCode == 401 {
                 self.refreshToken(forAPI: router, andCompletionHandler: completion)
-            } else {
+            }  else {
                 switch response.result {
                     case .success(let data):
                         do {
                             let asJSON = try JSONSerialization.jsonObject(with: data)
-                            completion(asJSON, nil)
+                            if let httpStatusCode = response.response?.statusCode,
+                               (200..<300).contains(httpStatusCode) {
+                                completion(asJSON, nil)
+                            } else {
+                                completion(nil, asJSON)
+                            }
                             // Handle as previously success
                         } catch {
                             completion(nil, error.localizedDescription)
-                            // Here, I like to keep a track of error if it occurs, and also print the response data if possible into String with UTF8 encoding
-                            // I can't imagine the number of questions on SO where the error is because the API response simply not being a JSON and we end up asking for that "print", so be sure of it
                             print("Error while decoding response: \(error) from: \(String(data: data, encoding: .utf8) ?? "")")
                             break
                         }
@@ -64,12 +67,6 @@ class FEServiceInteractor: FLServiceInteractorProtocol {
             self.request(forAPI: router, andCompletionHandler: completion)
         }
     }
-
-    func requestString<T: Decodable>(forAPI router: APIRouter, withResponseFormat format: T.Type, andCompletionHandler completion: @escaping ((String?) -> ()), enableCache: Bool = true) {
-        AF.request(router).responseString { (responseString) in
-            completion(responseString.value)
-        }
-    }
 }
 
 
@@ -85,7 +82,6 @@ enum HTTPHeaderField: String {
     case acceptType = "Accept"
     case acceptEncoding = "Accept-Encoding"
     case string = "String"
-    case userAgent = "User-Agent"
     case platform = "X-Platform"
     case clientVersion = "X-Client-Version"
 }
@@ -97,18 +93,70 @@ enum ContentType: String {
 }
 
 enum RequestParams {
-    // case requestBody(_:Codable, _: EncodingType = .snakeCase)
+     case requestBody(_:Codable)
     case requestBodyWithDictionary(_: [String: Any])
-    //    case urlQuery(_:Codable, _: EncodingType = .snakeCase)
-    //    case bodyAndUrlParams(body:Codable, url:Codable, _: EncodingType = .snakeCase)
-    case header(_:Codable)
-    //    case urlReplace(_:[URLReplaceIdentifier : String])
-    //    case urlReplaceAndParams(replace:[URLReplaceIdentifier : String], params: Codable, _: EncodingType = .snakeCase)
-    //    case urlReplaceAndBody(replace:[URLReplaceIdentifier : String], body: Codable, _: EncodingType = .snakeCase)
+    case urlReplace(_:[URLReplaceIdentifier : String])
     case none
 }
 
-public typealias FLServiceTaskCompletionHandler = (Any?, String?) -> Void
+public typealias FLServiceTaskCompletionHandler = (_ response: Any?, _ error: Any?) -> Void
 public typealias FLServiceSuccessBlock = ()->()
-public typealias FLServiceFailureBlock = (_ errorMessage: String?)->()
+public typealias FLServiceFailureBlock = (_ errorMessage: Any?)->()
 public typealias FLServiceNetworkIssueBlock = ()->()
+
+
+public enum URLReplaceIdentifier: String {
+    case userId = ":userId"
+    case subscriptionId = ":subscriptionId"
+   
+}
+
+struct FLAppConfig {
+    
+    var appConfigMode: FLAppConfigurationMode = .debug
+    static var shared = FLAppConfig(appConfigMode: .debug)
+    
+    init(appConfigMode: FLAppConfigurationMode) {
+        self.appConfigMode = appConfigMode
+    }
+    var hostName: String {
+        switch appConfigMode {
+            case .debug: return "engage.frolicz0.de"
+            case .uat: return "engage.frolicz0.de"
+            case .release: return "engage.frolic.live"
+        }
+    }
+    private var apiHostName: String { return "\(hostName)" }
+    
+    var apiDomainUrl: String { return "https://\(apiHostName)" }
+    var apiBaseUrl: URL { URL(string: "\(apiDomainUrl)/service/application/app")! }
+   
+    // User Subscription
+    var getUserSubscriptionDetail = "subscriptions/users/:userId"
+    var addUserSubscription = "subscriptions/:subscriptionId/users/:userId/payment"
+    var getSubscriptionFeature = "subscriptions/:subscriptionId/features"
+    var getUserSubscriptionFeature = "subscriptions/users/:userId/features"
+    var renewUserSubscription = "subscriptions/users/:userId/renew"
+    var upgradeUserSubscriptionPlan = "subscriptions/users/:userId/upgrade"
+
+
+    // USer Detail
+    var userDetail = "users/:userId"
+    var userRegister = "users/register"
+    var getUserAccesToken = "auth/token"
+    var refreshAccesToken = "auth/token"
+
+// User Activity
+    var getuserActivityDetail = "activities/:activityCode/users/:userId"
+    var publishuserActivity = "activities/:activityCode/users/:userId"
+    var getUserAllPreviousActivity = "activities/users/:userId"
+
+        
+}
+
+
+enum FLAppConfigurationMode: Codable {
+    case debug
+    case uat
+    case release
+}

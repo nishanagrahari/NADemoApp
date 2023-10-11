@@ -14,34 +14,22 @@ public final class NADemoSdk {
      init(interactor: FLServiceInteractorProtocol){
         self.interactor = interactor
     }
-    
+    private var apiKey: String = ""
    public static let shared = NADemoSdk(interactor: FEServiceInteractor())
 
     
-    
-    //MARK: Login
-    public func requestOTP(onSuccess:@escaping FLServiceSuccessBlock, onFailure:@escaping FLServiceFailureBlock) {
-        interactor.request(forAPI: .login("")) { dataResponse, error in
-            
-            if let response = dataResponse {
-                print(response)
-            }
-            else {
-                onFailure(error);
-                return
-            }
-            onSuccess()
-        }
+    public func configureSDK(apiKey: String) {
+        self.apiKey = apiKey
     }
     
-    public func configureSDK(apiKey: String) {
-            interactor.request(forAPI: .login("")) { dataResponse, error in
-                if let response = dataResponse {
-                    print(response)
-                }
-                else {
-                    return
-                }
-            }
+    public func authLogin(userId: String, onSuccess:@escaping (FLServiceSuccessBlock), onFailure:@escaping FLServiceFailureBlock) {
+        interactor.request(forAPI: .authLogin(apiKey, userId)) { response, error in
+           if let response = response {
+               FEUserSession.saveLoginSession(session: response)
+               onSuccess()
+           } else {
+               onFailure(error)
+           }
+        }
     }
 }

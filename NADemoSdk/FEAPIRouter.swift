@@ -9,27 +9,36 @@ import Foundation
 import Alamofire
 public enum APIRouter: APIConfiguration {
     
-    //Login
-//    case getOTP(_ request: FLLoginGetOTPRequest)
-//    case getEmailOTP(_ request: FLEmailGetOTPRequest)
-//    case verifyOTP(_ request: FLEmailAuthRequest)
-    
-    case login(_ request: String)
-    case authLogin(_ apiKey: String)
-  //  case refreshAuth(_ authToken: String)
+   // case login(_ request: String)
+    case authLogin(_ apiKey: String, _ userId: String)
+    case userRegister(_ name: String, _ identifire: String)
     case refreshToken(_ request: FERefreshTokenRequest)
-    //MARK: Base URL
-    static var baseURLWithVersion: URL {
-        let baseUrl = URL(string: "https://engage.frolicz0.de/service/application/app")!
-        return baseUrl.appendingPathComponent(version)
-    }
+    case userSubscriptionDetail(_ urlReplace: [URLReplaceIdentifier : String])
+    case addUserSubscription(_ urlReplace: [URLReplaceIdentifier : String])
+    case subscriptionFeature(_ urlReplace: [URLReplaceIdentifier : String])
+    case userSubscriptionFeature(_ urlReplace: [URLReplaceIdentifier : String])
+    case renewSubscription(_ urlReplace: [URLReplaceIdentifier : String])
+    case upgradePlan(_ urlReplace: [URLReplaceIdentifier : String])
+    case userDetail(_ urlReplace: [URLReplaceIdentifier : String])
+    case userActivityDetail(_ urlReplace: [URLReplaceIdentifier : String])
+    case publishUserActivity(_ urlReplace: [URLReplaceIdentifier : String])
+    case getUserAllPreviousActivity(_ urlReplace: [URLReplaceIdentifier : String])
+
+    static var baseURLWithVersion: URL { FLAppConfig.shared.apiBaseUrl.appendingPathComponent(version) }
+    
     
     
     // MARK: - HTTPMethod
     var method: HTTPMethod {
         switch self {
-        case .login, .refreshToken, .authLogin:
+        case .userRegister, .refreshToken, .authLogin:
             return .post
+        case .userSubscriptionDetail, .addUserSubscription, .subscriptionFeature, .userSubscriptionFeature, .renewSubscription, .upgradePlan, .userDetail:
+            return .get
+        case .userActivityDetail, .publishUserActivity, .getUserAllPreviousActivity:
+            return .get
+       
+      
         }
     }
     
@@ -37,13 +46,34 @@ public enum APIRouter: APIConfiguration {
     // MARK: - Parameters
     var parameters: RequestParams {
         switch self {
-        case .login:
-            return .none
+        case .userRegister(let appkey, let userId):
+            let request = FEAuthLoginRequest(apiKey: appkey, userIdentifier: userId)
+            return .requestBody(request)
         case .refreshToken(let request):
-            return .header(request)
-        case .authLogin(let request):
-            return .header(request)
-            
+            return .requestBody(request)
+        case .authLogin(let appkey, let userId):
+            let request = FEAuthLoginRequest(apiKey: appkey, userIdentifier: userId)
+            return .requestBody(request)
+        case .userSubscriptionDetail(let urlReplace):
+            return .urlReplace(urlReplace)
+        case .addUserSubscription(let urlReplace):
+            return .urlReplace(urlReplace)
+        case .subscriptionFeature(let urlReplace):
+            return .urlReplace(urlReplace)
+        case .userSubscriptionFeature(let urlReplace):
+            return .urlReplace(urlReplace)
+        case .renewSubscription(let urlReplace):
+            return .urlReplace(urlReplace)
+        case .upgradePlan(let urlReplace):
+            return .urlReplace(urlReplace)
+        case .userDetail(let urlReplace):
+            return .urlReplace(urlReplace)
+        case .userActivityDetail(let urlReplace):
+              return .urlReplace(urlReplace)
+        case .publishUserActivity(let urlReplace):
+            return .urlReplace(urlReplace)
+        case .getUserAllPreviousActivity(let urlReplace):
+            return .urlReplace(urlReplace)
         }
     }
     
@@ -52,11 +82,42 @@ public enum APIRouter: APIConfiguration {
         switch self {
             // force update
         case .refreshToken:
-            return ""
-        case .login, .authLogin:
-            return "FLAppConfig.shared.forceUpdate"
-            //Login
-       
+            return FLAppConfig.shared.refreshAccesToken
+        case .authLogin:
+            return FLAppConfig.shared.getUserAccesToken
+        case .userRegister:
+            return FLAppConfig.shared.userRegister
+
+        case .userSubscriptionDetail:
+            return FLAppConfig.shared.getUserSubscriptionDetail
+
+        case .addUserSubscription:
+            return FLAppConfig.shared.addUserSubscription
+
+        case .subscriptionFeature:
+            return FLAppConfig.shared.getSubscriptionFeature
+
+        case .userSubscriptionFeature:
+            return FLAppConfig.shared.getUserSubscriptionFeature
+
+        case .renewSubscription:
+            return FLAppConfig.shared.renewUserSubscription
+
+        case .upgradePlan:
+            return FLAppConfig.shared.upgradeUserSubscriptionPlan
+
+        case .userDetail:
+            return FLAppConfig.shared.userDetail
+
+        case .userActivityDetail:
+            return FLAppConfig.shared.getuserActivityDetail
+
+        case .publishUserActivity:
+            return FLAppConfig.shared.publishuserActivity
+
+        case .getUserAllPreviousActivity:
+            return FLAppConfig.shared.getUserAllPreviousActivity
+
         }
     }
     
@@ -69,16 +130,16 @@ public enum APIRouter: APIConfiguration {
         var url = APIRouter.baseURLWithVersion
         var urlRequest = URLRequest(url: url.appendingPathComponent(path))
         switch self {
-        case .login, .authLogin, .refreshToken:
-            url = APIRouter.baseURLWithVersion
-            urlRequest = URLRequest(url: url.appendingPathComponent(path))
-            
-            // default:
-            //  urlRequest.setValue(FLServiceInteractor.shared.userAgent, forHTTPHeaderField: HTTPHeaderField.userAgent.rawValue)
+        case .authLogin, .refreshToken:
+         break
+        default:
+            if let userToken = FEUserSession.getSession()?.accessToken {
+                let token = "bearer\(userToken)"
+                urlRequest.setValue(token, forHTTPHeaderField: HTTPHeaderField.authentication.rawValue)
+            }
         }
         
         urlRequest.url = url.appendingPathComponent(path)
-        
         //HTTP Method
         urlRequest.httpMethod = method.rawValue
         
@@ -89,20 +150,25 @@ public enum APIRouter: APIConfiguration {
         
         // Parameters
         switch parameters {
-            //            case .requestBody(let request, let encodingType):
-            //            let params = try request.convertToDictionary(encoder: encodingType)
-            //            urlRequest.httpBody = try JSONSerialization.data(withJSONObject: params, options: [])
-            //            reqData = params
+        case .requestBody(let request):
+            let params = try request.convertToDictionary()
+            urlRequest.httpBody = try JSONSerialization.data(withJSONObject: params, options: [])
         case .requestBodyWithDictionary(let dictionary):
             urlRequest.httpBody = try JSONSerialization.data(withJSONObject: dictionary, options: [])
-        case .header(let request):
-            let params = try request.convertToDictionary()
-            params.forEach({
-                urlRequest.setValue($0.value as? String, forHTTPHeaderField: $0.key)
-            })
+        case .urlReplace(let replacements):
+            var paramPath = path
+            paramPath.replaceURLParameters(withParameters: replacements)
+            urlRequest.url = url.appendingPathComponent(paramPath)
         case .none:
             break
         }
         return urlRequest
+    }
+}
+
+
+extension String {
+    mutating func replaceURLParameters(withParameters parameters:[URLReplaceIdentifier : String]) {
+        for (key,value) in parameters { self = self.replacingOccurrences(of: key.rawValue, with: value) }
     }
 }
